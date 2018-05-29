@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "restricted area"
+AuthUserFile /home/luxato/web/claasdata.stranovsky.cloud/.htpasswd
+require valid-user

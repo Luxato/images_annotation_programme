@@ -1,7 +1,9 @@
+<?php
+?>
 <!DOCTYPE html>
 <html>
-
 <head>
+
 	<title>Image Recognition Programme</title>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,23 +20,25 @@
 	<script src="js/jquery-3.2.1.js" type="text/javascript"></script>	
 	<script src="js/jquery.selectareas.js" type="text/javascript"></script>
 	<script src="autocomplete/jquery.easy-autocomplete.js" type="text/javascript"></script>
-
+<?php
+		if ( isset($_GET['image']) && !empty($_GET['image'])) {
+					echo "<style>body{border:5px solid red;}</style>";
+		}
+	?>
 <script>
-
 var selection_xy = [];
 var tag_error_raised = false;
 var new_zone_created = false;
 var init_finished = false;
 var current_area = null;
-MESSAGE_EMPTY_TAG = "You need to enter a tag here"
-RED_COLOR = "#C70039"
-GREEN_COLOR = "#80A60E"
+MESSAGE_EMPTY_TAG = "You need to enter a tag here";
+RED_COLOR = "#C70039";
+GREEN_COLOR = "#80A60E";
 var changeStatusMessage = false;
 
 var json_annotations = [];
 var list_of_tags = [];
 var current_visible_area_id = -1;
-
 /*$("#image_to_process").on('load', function() {
  alert("On Load");
 })*/
@@ -58,12 +62,10 @@ var image_info = {
 var lastLoadedWidth  = 0;
 var lastLoadedHeight = 0;
 var firstWidth = 0;
-
 $(document).ready(function ()
 {
 	$('#image_to_process').on("load", function()
 	{
-
 	    console.log("INFO: " + "on('load', function() ");
 		changeStatusMessage = false;
 
@@ -161,20 +163,25 @@ $(document).ready(function ()
 			$('#image_to_process').selectAreas('add', areaOptions);
 		});
 
+
+<?php
+	if(isset($_GET['image']) && !empty($_GET['image'])) {
+		echo "var addPrevious = false;";
+	} else {
+		echo "var addPrevious = true;";
+	}
+?>
         // Add anotations from previous image
-        if (JSON.parse(localStorage.getItem("lastAnnotations")) != null) {
+        if (JSON.parse(localStorage.getItem("lastAnnotations")) != null && addPrevious) {
             var annotations = JSON.parse(localStorage.getItem("lastAnnotations"));
             annotations = annotations.annotations;
             for (var i = 0, max = annotations.length; i < max; i++) {
-                console.log('Pridavam nove kocky');
-                console.log(annotations[i]);
                 var areaOptions = {
                     x: (annotations[i].x * ratio_original_to_screen_x),
                     y: (annotations[i].y * ratio_original_to_screen_y),
                     width: (annotations[i].width * ratio_original_to_screen_x),
                     height: (annotations[i].height * ratio_original_to_screen_y),
                     tag: annotations[i].tag };
-                console.log(areaOptions);
 
                 $("#image_to_process").selectAreas('add', areaOptions);
             }
@@ -285,6 +292,7 @@ $(document).ready(function ()
 		new_zone_created = false
 
 		// Check region size
+		/*if (isAreaTooSmall(area))*/
 		if (isAreaTooSmall(area))
 		{
 			setStatusAndColor("The region is too small (must be >80px).", RED_COLOR)
@@ -539,6 +547,7 @@ function isTagInAuthorizedList()
 
 	function isAreaTooSmall(area)
 	{
+		return false;
 		if ((area.width<80) || (area.height<80))
 		{
 			return true;
@@ -673,6 +682,7 @@ function isTagInAuthorizedList()
           localStorage.setItem("lastAnnotations", JSON.stringify(image_info));
       }
       /*return;*/
+      console.log('Ajax');
 	 $.ajax({
        url : 'inc/validateTagsAndRegions.php',
        type : 'POST',
@@ -682,7 +692,12 @@ function isTagInAuthorizedList()
 	   success : function(data, status)
 	   {
 	       // Reload a page but with a message
-		   setStatusAndColor("Data has been sent.", GREEN_COLOR);
+
+           /**
+            * TODO temporary
+            */
+
+           setStatusAndColor("Data has been sent.", GREEN_COLOR);
 		   loadImage(); // replace the image
 		   getOrCreateUserId(); // Count also points later on
 
@@ -771,10 +786,11 @@ function isTagInAuthorizedList()
 	  $.ajax({
 			type: 'POST',
 			url: 'inc/getNewImage.php',
-			data: {user_id: dataString},
+			data: {user_id: dataString, image: '<?= $_GET['image'] ?>'},
 			dataType: "json",
 			success: function(data)
 					 {
+					 	console.log(data);
 					    var dataJson = JSON.parse(data);
 					     console.log(dataJson);
 					     $('#image-headline').text(dataJson.id);
@@ -901,22 +917,57 @@ function isTagInAuthorizedList()
 														
 														
 							<div style="padding-top:96px;box-sizing: border-box;width=100%;text-align: right;">
-								<button onclick="window.location.reload()" class="tooltip ae_button_level_2">Ignore & Get next image
+								<button onclick="test()" class="tooltip ae_button_level_2">Ignore & Get next image
 								<span class="tooltiptext light_blue">Ignore this image and associated tags and go to the next image.</span>
 								<span style="padding-left:4px;">
 								<img src="./images/ic_replay_black_48dp.png" style="vertical-align: bottom;" alt="" width="18" height="18"></span></button>
 							</div>
 
-							<div style="padding-top:24px;box-sizing: border-box;width=100%;text-align: right;">
+							<!--<div style="padding-top:24px;box-sizing: border-box;width=100%;text-align: right;">
 								<button onclick="window.location.href='thank_you.html'" class="tooltip ae_button_level_2">Leave
 								<span class="tooltiptext light_blue">Leave this page, cancel all tags of this image. Validated tags will be kept.</span>
 								<span style="padding-left:4px;">
 								<img src="./images/ic_exit_to_app_black_48dp.png" style="vertical-align: bottom;" alt="" width="18" height="18"></span></button>
-							</div>
+							</div>-->
 
 							<div style="padding-top: 12px" class="ae_small_80">
 								<span id="message" class="blue_color_text" style="float:right;"></span>
 							</div>
+							<?php
+                            $file="./data/ignored.txt";
+                            $ignored = -1;
+                            $handle = fopen($file, "r");
+                            while(!feof($handle)){
+                                $line = fgets($handle);
+                                $ignored++;
+                            }
+								$data = new FilesystemIterator('./data/images/collection_01/part_4', FilesystemIterator::SKIP_DOTS);
+								/*$data2 = new FilesystemIterator('./data/images/collection_01/part_2', FilesystemIterator::SKIP_DOTS);
+								$data3 = new FilesystemIterator('./data/images/collection_01/part_3', FilesystemIterator::SKIP_DOTS);*/
+								$anotated = new FilesystemIterator('./data/annotations/', FilesystemIterator::SKIP_DOTS);
+
+                            $file="./data/ignored.txt";
+                            $ignored = -1;
+                            $handle = fopen($file, "r");
+                            while(!feof($handle)){
+                                $line = fgets($handle);
+                                $ignored++;
+                            }
+
+                            fclose($handle);
+							?>
+							<ul>
+								<li>Images in collection: <strong><?= iterator_count($data) ?></strong></li>
+								<li>Annotated: <?= iterator_count($anotated) ?></li>
+                                <li>Ignored: <?= $ignored ?></li>
+                                <li>Sum: <?= iterator_count($anotated) . ' + ' . $ignored . ' = ' . '<strong>' . (iterator_count($anotated) + $ignored) . '</strong>' ?></li>
+                                <li>Images left: <strong> <?= iterator_count($data) - (iterator_count($anotated) + $ignored) ?> </strong></li>
+							</ul>
+    <!-- <ul>
+        <li>
+            <strong>Reviewed:</strong> <?= $ignored ?>
+        </li>
+    </ul> -->
 </div>
 
 
@@ -924,10 +975,7 @@ function isTagInAuthorizedList()
 
 		</div>
 
-</body>
-
 <script>
-
    getOrCreateUserId();
    loadImage();
     $(function(){
@@ -941,6 +989,33 @@ function isTagInAuthorizedList()
             }
         });*/
     });
+    $(window).on('keypress',function(e) {
+            var key = e.which;
+            if (key == 122) { //z
+                $('#all_annotations_button').click();
+            }
+            if (key == 121) { //y
+                $('#none_annotation_button').click();
+            }
+            if (key == 100) { //d
+                $('#one_annotation_button').click();
+            }
+        });
+    function test () {
+        $.ajax({
+            url : '/ignore.php',
+            type : 'POST',
+            data : {image : $('#image-headline').text() },
+            cache: false,
+            success : function()
+            {
+                console.log('Image was putted into ignore list.');
+                location.reload();
+            }
+        });
+    }
 </script>
+</body>
+
 
 </html>

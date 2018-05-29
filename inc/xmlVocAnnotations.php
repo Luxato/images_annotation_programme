@@ -134,8 +134,8 @@ class xmlVocAnnotations
 		$this->appendObjects($root);
 		$this->prettify();
 		              
-		// Replace .jpg by .xml
-		$filename = str_replace(array(".jpg",".JPG"),".xml", $this->_filename);		
+		// Replace .bmp by .xml
+		$filename = str_replace(array(".bmp",".BMP"),".xml", $this->_filename);
 		$fullPath = $targetDir. DIRECTORY_SEPARATOR . $filename;
 				
 		file_put_contents($file, "Save annotations to ". $fullPath ."\n",FILE_APPEND | LOCK_EX);					
@@ -146,7 +146,7 @@ class xmlVocAnnotations
 	
 } // End of class
 
-/*$data_as_serialize = 'O:8:"stdClass":6:{s:3:"url";s:59:"images/collection/collection_01/famille/20150131_185559.jpg";s:2:"id";s:19:"20150131_185559.jpg";s:6:"folder";s:21:"collection_01/famille";s:5:"width";i:3264;s:6:"height";i:2448;s:11:"annotations";s:378:"[{"tag":"Anemo probe","x":1618.0064308681672,"y":391.81993569131834,"width":335.84565916398714,"height":374.32797427652736},{"tag":"Anemo probe","x":2552.0771704180065,"y":423.30546623794214,"width":279.87138263665594,"height":279.87138263665594},{"tag":"DND:Drop Nose Device","x":2782.9710610932475,"y":1224.4372990353697,"width":423.30546623794214,"height":1000.540192926045}]";}';
+/*$data_as_serialize = 'O:8:"stdClass":6:{s:3:"url";s:59:"images/collection/collection_01/famille/20150131_185559.bmp";s:2:"id";s:19:"20150131_185559.bmp";s:6:"folder";s:21:"collection_01/famille";s:5:"width";i:3264;s:6:"height";i:2448;s:11:"annotations";s:378:"[{"tag":"Anemo probe","x":1618.0064308681672,"y":391.81993569131834,"width":335.84565916398714,"height":374.32797427652736},{"tag":"Anemo probe","x":2552.0771704180065,"y":423.30546623794214,"width":279.87138263665594,"height":279.87138263665594},{"tag":"DND:Drop Nose Device","x":2782.9710610932475,"y":1224.4372990353697,"width":423.30546623794214,"height":1000.540192926045}]";}';
 
 $obj = unserialize($data_as_serialize);
 

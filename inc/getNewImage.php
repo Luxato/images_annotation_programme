@@ -5,6 +5,12 @@ include 'configuration.php';
 
 $service_requested = $_GET["info"];
 
+if (isset($_POST['image']) && !empty($_POST['image'])) {
+	$get_special = TRUE;
+} else {
+	$get_special = FALSE;
+}
+
 # Search the xml file in a $dir
 function getXmlFile($dir, $filename)
 {
@@ -41,9 +47,12 @@ $not_annotated_image_index = 0;
 	
 foreach(new RecursiveIteratorIterator($it) as $file) 
 {	
+/*echo '<pre>';
+print_r( $file );
+echo '</pre>';*/
 
 	# Process file
-	if ( (strpos(strtoupper($file), '.JPG') !== false) && (strstr($file, $COLLECTION_NAME)) )
+	if ( (strpos(strtoupper($file), '.BMP') !== false) && (strstr($file, $COLLECTION_NAME)) )
 	{
 		# echo $file . "<br>";
 		$delimiter = "/";
@@ -64,8 +73,8 @@ foreach(new RecursiveIteratorIterator($it) as $file)
 			$image_index = $image_index + 1;			
 			
 			# Try to find the annotation
-			$id = str_replace(array(".jpg",".JPG"),".jpg", $image_name);
-			$xml_filename = str_replace(array(".jpg",".JPG"), ".xml", $id);
+			$id = str_replace(array(".bmp",".BMP"),".bmp", $image_name);
+			$xml_filename = str_replace(array(".bmp",".BMP"), ".xml", $id);
 			$xml_filepath = getXmlFile($ANNOTATIONS_DIR, $xml_filename);
 
 			if ($xml_filepath != null)
@@ -81,6 +90,19 @@ foreach(new RecursiveIteratorIterator($it) as $file)
 		}									
 	}		
 }
+/*echo '<pre>';
+print_r( $list_of_annotated_images );
+echo '</pre>';
+echo '<pre>';
+print_r( $list_of_not_annotated_images );
+echo '</pre>';
+echo '<pre>';
+print_r( $list_of_images );
+echo '</pre>';*/
+// TODO if file is in anotated images remove it
+/*if () {
+
+}*/
 
 $file = 'file.log';
 file_put_contents($file, "INFO - getNewImage.php\n");
@@ -101,36 +123,57 @@ foreach( $list_of_images as $image_info )
 echo "Number of images :" . count($list_of_images) ."<br>";*/
 
 # New image 80%
+/*echo '<pre>';
+print_r( $list_of_not_annotated_images );
+echo '</pre>';*/
+if (!$get_special) {
+    $handle = fopen("../data/ignored.txt", "r");
+    if ($handle) {
+        while (($line = fgets($handle)) !== false) {
+            // process the line read.
+            foreach ( $list_of_annotated_images as $key => $image) {
+                if ($image['name'] == trim($line)) {
+                    unset($list_of_not_annotated_images[$key]);
+                }
+            }
+        }
+
+        fclose($handle);
+    }
+    $list_of_not_annotated_images = array_values($list_of_not_annotated_images);
+}
+
+// remove images which have been ignored.
+
+
 $random_new = rand(0, 99);
 
 file_put_contents($file, "Random index = ".$random_new."\n",FILE_APPEND | LOCK_EX);
 
 # Not annotated 80%
-if ( ($random_new < $ratio_new_old) && (count($list_of_not_annotated_images)>0))
+/*if ( ($random_new < $ratio_new_old) && (count($list_of_not_annotated_images)>0))*/
+if ( TRUE )
 {
 	file_put_contents($file, "Not annotated 80%\n",FILE_APPEND | LOCK_EX);
-	# Get a random number 
-	$random_index = rand(0, count($list_of_not_annotated_images)-1);
-	$image_info = $list_of_not_annotated_images[$random_index];
-}
-# Annotated 20%
-else
-{
-	file_put_contents($file, "Annotated 20%\n",FILE_APPEND | LOCK_EX);
-	# If exist
-	if (count($list_of_annotated_images)>0)
-	{
-		# Get a random number 
-		$random_index = rand(0, count($list_of_annotated_images)-1);
+		/*echo "<pre>";
+		print_r($list_of_annotated_images);
+		echo "</pre>";*/
+	if ($get_special) {
+		foreach ($list_of_annotated_images as $key => $file) {
+			/*var_dump($file);
+			var_dump($_POST['image']);*/
+			if ($file['name'] == $_POST['image']) {
+				$random_index = $key;
+				break; 
+			}
+		}
 		$image_info = $list_of_annotated_images[$random_index];
-	}
-	else
-	{
-		file_put_contents($file, "Force not annotated\n",FILE_APPEND | LOCK_EX);
+	} else {
 		# Get a random number 
 		$random_index = rand(0, count($list_of_not_annotated_images)-1);
 		$image_info = $list_of_not_annotated_images[$random_index];
 	}
+
 }
 
 #	$random_index = rand(0, count($list_of_images)-1);
@@ -139,10 +182,10 @@ else
 $url = $IMAGE_WEB_DIR."/".$image_info["type"] . "/" . $image_info["msn"] . "/" . $image_info["name"];
 
 # Remove extension
-$id = str_replace(array(".jpg",".JPG"),".jpg", $image_info["name"]);
+$id = str_replace(array(".bmp",".BMP"),".bmp", $image_info["name"]);
 
-# Get the xml file, replace .jpg by xml
-$xml_filename = str_replace(array(".jpg",".JPG"), ".xml", $id);			
+# Get the xml file, replace .bmp by xml
+$xml_filename = str_replace(array(".bmp",".BMP"), ".xml", $id);
 
 # Try to find the annotation
 $xml_filepath = getXmlFile($ANNOTATIONS_DIR, $xml_filename);
